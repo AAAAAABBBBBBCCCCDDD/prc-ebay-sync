@@ -144,16 +144,19 @@ async function getListings(env) {
   return (await env.STORE.get("listings", "json")) || { updated: null, count: 0, listings: [] };
 }
 
-async function removeFromEbay(env, item, fetchFn = fetch) {
-  if (item.quantity <= 1) {
+async function removeFromEbay(env, item, qty, fetchFn = fetch) {
+  if (qty >= item.quantity) {
     await trading(env, "EndFixedPriceItem", `<ItemID>${item.id}</ItemID><EndingReason>NotAvailable</EndingReason>`, fetchFn);
   } else {
     await trading(env, "ReviseInventoryStatus",
-      `<InventoryStatus><ItemID>${item.id}</ItemID><Quantity>${item.quantity - 1}</Quantity></InventoryStatus>`, fetchFn);
+      `<InventoryStatus><ItemID>${item.id}</ItemID><Quantity>${item.quantity - qty}</Quantity></InventoryStatus>`, fetchFn);
   }
+}
+
+async function deductListings(env, lines) {
   const data = await getListings(env);
   data.listings = data.listings
-    .map((l) => (l.id === item.id ? { ...l, quantity: l.quantity - 1 } : l))
+    .map((l) => { const ln = lines.find((x) => x.id === l.id); return ln ? { ...l, quantity: l.quantity - ln.qty } : l; })
     .filter((l) => l.quantity > 0);
   data.count = data.listings.length;
   await env.STORE.put("listings", JSON.stringify(data));
@@ -179,41 +182,89 @@ async function paypal(env, path, body, fetchFn = fetch) {
   return j;
 }
 
-export async function createOrder(env, { itemId, delivery }, fetchFn = fetch) {
+const clean = (s, max = 200) => String(s ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
+
+export function validateCustomer(c = {}) {
+  const cust = {
+    name: clean(c.name, 140), email: clean(c.email, 200), phone: clean(c.phone, 30),
+    line1: clean(c.line1, 300), line2: clean(c.line2, 300), city: clean(c.city, 120), postcode: clean(c.postcode, 20).toUpperCase(),
+  };
+  const missing = [];
+  if (cust.name.length < 2) missing.push("name");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cust.email)) missing.push("email");
+  if (cust.phone.replace(/\D/g, "").length < 7) missing.push("phone number");
+  if (!cust.line1) missing.push("address");
+  if (!cust.city) missing.push("town/city");
+  if (!/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/.test(cust.postcode)) missing.push("valid UK postcode");
+  if (missing.length) throw httpError(400, "Please check your " + missing.join(", ") + ".");
+  return cust;
+}
+
+// Turn basket lines into checked, priced lines using live stock (never trusts browser prices)
+export async function priceBasket(env, rawLines) {
+  if (!Array.isArray(rawLines) || !rawLines.length) throw httpError(400, "Your basket is empty.");
   const { listings } = await getListings(env);
-  const item = listings.find((l) => l.id === String(itemId));
-  if (!item || item.auction) throw httpError(409, "Sorry, this item is no longer available.");
-  if (delivery === "collect" && !item.collection) throw httpError(400, "Collection isn't available for this item.");
-  if (delivery === "post" && item.postage === null) throw httpError(400, "This item is collection only.");
-  const shipping = delivery === "post" ? item.postage : 0;
-  const f = (n) => n.toFixed(2);
+  const lines = [];
+  for (const raw of rawLines.slice(0, 50)) {
+    const item = listings.find((l) => l.id === String(raw.id));
+    if (!item || item.auction) throw httpError(409, `Sorry, "${clean(raw.title || raw.id, 60)}" is no longer available. Please remove it from your basket.`);
+    const qty = Math.max(1, Math.floor(Number(raw.qty) || 1));
+    if (qty > item.quantity) throw httpError(409, `Only ${item.quantity} of "${item.title.slice(0, 60)}" left. Please update your basket.`);
+    const delivery = raw.delivery === "collect" ? "collect" : "post";
+    if (delivery === "collect" && !item.collection) throw httpError(400, `Collection isn't available for "${item.title.slice(0, 60)}".`);
+    if (delivery === "post" && item.postage === null) throw httpError(400, `"${item.title.slice(0, 60)}" is collection only.`);
+    if (lines.some((l) => l.id === item.id)) throw httpError(400, "That item is in your basket twice.");
+    lines.push({ id: item.id, title: item.title, price: item.price, qty, delivery, postage: delivery === "post" ? item.postage * qty : 0 });
+  }
+  const f = (n) => (Math.round(n * 100) / 100).toFixed(2);
+  const itemTotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
+  const shipping = lines.reduce((s, l) => s + l.postage, 0);
+  return { lines, itemTotal: f(itemTotal), shipping: f(shipping), total: f(itemTotal + shipping) };
+}
+
+export async function createOrder(env, body, fetchFn = fetch) {
+  const customer = validateCustomer(body.customer);
+  // backwards compatible with single-item requests
+  const rawLines = body.items || (body.itemId ? [{ id: body.itemId, qty: 1, delivery: body.delivery }] : []);
+  const basket = await priceBasket(env, rawLines);
+  const anyPost = basket.lines.some((l) => l.delivery === "post");
   const order = await paypal(env, "/v2/checkout/orders", {
     intent: "CAPTURE",
     purchase_units: [{
-      reference_id: item.id,
-      custom_id: `${item.id}|${delivery}`,
-      description: `${item.title}`.slice(0, 127),
+      reference_id: "basket",
+      description: `PRC Distribution order (${basket.lines.length} item${basket.lines.length > 1 ? "s" : ""})`,
       amount: {
-        currency_code: "GBP", value: f(item.price + shipping),
-        breakdown: { item_total: { currency_code: "GBP", value: f(item.price) }, shipping: { currency_code: "GBP", value: f(shipping) } },
+        currency_code: "GBP", value: basket.total,
+        breakdown: { item_total: { currency_code: "GBP", value: basket.itemTotal }, shipping: { currency_code: "GBP", value: basket.shipping } },
       },
-      items: [{ name: item.title.slice(0, 127), sku: item.id, quantity: "1", unit_amount: { currency_code: "GBP", value: f(item.price) } }],
+      items: basket.lines.map((l) => ({
+        name: (l.title + (l.delivery === "collect" ? " (collection)" : "")).slice(0, 127),
+        sku: l.id, quantity: String(l.qty), unit_amount: { currency_code: "GBP", value: l.price.toFixed(2) },
+      })),
+      ...(anyPost ? { shipping: {
+        type: "SHIPPING",
+        name: { full_name: customer.name.slice(0, 300) },
+        address: { address_line_1: customer.line1, address_line_2: customer.line2 || undefined, admin_area_2: customer.city, postal_code: customer.postcode, country_code: "GB" },
+      } } : {}),
     }],
     payment_source: { paypal: { experience_context: {
-      brand_name: "PRC Distribution", user_action: "PAY_NOW",
-      shipping_preference: delivery === "post" ? "GET_FROM_FILE" : "NO_SHIPPING",
+      brand_name: "PRC Distribution", user_action: "PAY_NOW", locale: "en-GB",
+      shipping_preference: anyPost ? "SET_PROVIDED_ADDRESS" : "NO_SHIPPING",
     } } },
   }, fetchFn);
-  await env.STORE.put(`pending:${order.id}`, JSON.stringify({ itemId: item.id, delivery, total: f(item.price + shipping) }), { expirationTtl: 86400 });
-  return { id: order.id };
+  await env.STORE.put(`pending:${order.id}`, JSON.stringify({ lines: basket.lines, total: basket.total, customer }), { expirationTtl: 86400 });
+  return { id: order.id, total: basket.total };
 }
 
 export async function captureOrder(env, orderId, fetchFn = fetch) {
   const pending = await env.STORE.get(`pending:${orderId}`, "json");
   if (!pending) throw httpError(404, "Order not found or expired.");
+  // re-check stock before taking any money
   const { listings } = await getListings(env);
-  const item = listings.find((l) => l.id === pending.itemId);
-  if (!item) throw httpError(409, "Sorry, this item has just sold. You have not been charged.");
+  for (const ln of pending.lines) {
+    const item = listings.find((l) => l.id === ln.id);
+    if (!item || item.quantity < ln.qty) throw httpError(409, `Sorry, "${ln.title.slice(0, 60)}" has just sold. You have not been charged.`);
+  }
   const result = await paypal(env, `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, null, fetchFn);
   const cap = result.purchase_units?.[0]?.payments?.captures?.[0];
   if (result.status !== "COMPLETED" || !cap || cap.status !== "COMPLETED") {
@@ -221,16 +272,22 @@ export async function captureOrder(env, orderId, fetchFn = fetch) {
   }
   const amountCheck = cap.amount?.value === pending.total ? "ok" : `MISMATCH: expected ${pending.total}, got ${cap.amount?.value}`;
   await env.STORE.delete(`pending:${orderId}`);
-  let ebayStatus = "ended";
-  try { await removeFromEbay(env, item, fetchFn); } catch (e) { ebayStatus = "FAILED: " + e.message; }
+  const ebay = [];
+  for (const ln of pending.lines) {
+    const item = listings.find((l) => l.id === ln.id);
+    try { await removeFromEbay(env, item, ln.qty, fetchFn); ebay.push(`${ln.id}: ok`); }
+    catch (e) { ebay.push(`${ln.id}: FAILED ${e.message}`); }
+  }
+  await deductListings(env, pending.lines);
   const record = {
     paypalOrder: orderId, captureId: cap.id, when: new Date().toISOString(),
-    itemId: item.id, title: item.title, total: pending.total, delivery: pending.delivery,
-    buyer: { name: [result.payer?.name?.given_name, result.payer?.name?.surname].filter(Boolean).join(" "), email: result.payer?.email_address },
-    shipTo: result.purchase_units?.[0]?.shipping || null, ebayStatus, amountCheck,
+    total: pending.total, amountCheck, customer: pending.customer,
+    paypalPayer: { name: [result.payer?.name?.given_name, result.payer?.name?.surname].filter(Boolean).join(" "), email: result.payer?.email_address },
+    items: pending.lines.map((l) => ({ id: l.id, title: l.title, qty: l.qty, price: l.price, delivery: l.delivery, postage: l.postage })),
+    ebay,
   };
   await env.STORE.put(`order:${record.when}:${orderId}`, JSON.stringify(record));
-  return { ok: true, title: item.title, delivery: pending.delivery, ebayStatus };
+  return { ok: true, total: pending.total, items: record.items.length };
 }
 
 // ---------- HTTP ----------
