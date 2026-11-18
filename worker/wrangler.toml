@@ -1,0 +1,18 @@
+name = "prc-shop"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+keep_vars = true
+
+[[kv_namespaces]]
+binding = "STORE"
+id = "d8908a8f84d84ce592fc5dd7f11e6226"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+EBAY_APP_ID = "PeterRai-MyWebsit-PRD-4d0996529-980867aa"
+PAYPAL_ENV = "live"
+
+# Set as secrets in Cloudflare (Settings > Variables and Secrets):
+#   EBAY_CERT_ID, EBAY_RUNAME, PAYPAL_CLIENT_ID, PAYPAL_SECRET, ADMIN_KEY
