@@ -86,6 +86,7 @@
     ".prc-dots{display:flex;justify-content:center;gap:6px;margin-top:14px}",
     ".prc-dots span{width:8px;height:8px;border-radius:50%;background:#cfd6de}.prc-dots span.on{background:" + BLUE + "}",
     ".widget:has(.ecomproductslist){display:none!important}",
+    ".social-link,li:has(> .social-link),.widget:has(.social-link):not(:has(p,h1,h2,h3,.prc-feat)){display:none!important}",
     ".prc-wa{position:fixed;left:18px;bottom:18px;z-index:99998;display:flex;align-items:center;gap:8px;background:#25d366;color:#fff!important;text-decoration:none;border-radius:30px;padding:12px 18px 12px 14px;font:inherit;font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25)}",
     ".prc-wa svg{width:24px;height:24px;flex:none}",
     "@media(max-width:520px){.prc-wa span{display:none}.prc-wa{padding:13px}}",
@@ -361,7 +362,9 @@
     if (!box) {
       box = document.createElement("div"); box.id = "prc-featured";
       var old = document.querySelector(".ecomproductslist");
-      var anchor = old && (old.closest(".widget--zone-widget") || old.closest(".widget"));
+      var anchor = null;
+      // use the outermost UK2 block that holds the old product list (it is nested), so the new section isn't hidden with it
+      for (var e = old; e && e !== document.body && !e.matches(".bk-zone"); e = e.parentElement) { if (e.matches(".widget")) anchor = e; }
       if (!anchor) {
         var h = [].find.call(document.querySelectorAll("h1,h2"), function (e) { return /top deals/i.test(e.textContent); });
         anchor = h && h.closest(".widget--zone-widget");
@@ -375,7 +378,7 @@
     var per = function () { return window.innerWidth <= 520 ? 1 : window.innerWidth <= 900 ? 2 : 4; };
     var page = 0, timer = null;
     box.className = "prc-feat";
-    box.innerHTML = '<div class="prc-feat-head"><h2>Latest deals</h2><a href="/shop">View all ' + items.length + " items →</a></div>" +
+    box.innerHTML = '<div class="prc-feat-head"><h2>Our products</h2><a href="/shop">View all ' + items.length + " items →</a></div>" +
       '<div class="prc-feat-wrap"><button class="prc-arrow l" type="button" aria-label="Previous">‹</button><div class="prc-feat-track"></div><button class="prc-arrow r" type="button" aria-label="Next">›</button></div><div class="prc-dots"></div>';
     var track = box.querySelector(".prc-feat-track"), dots = box.querySelector(".prc-dots");
     function pages() { return Math.max(1, Math.ceil(pool.length / per())); }
