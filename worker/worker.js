@@ -108,6 +108,8 @@ export function toListing(it) {
     postage: postal.length ? Math.min(...postal) : null, // null = no postage offered
     collection,
     location: it.Location || "",
+    category: String(it.PrimaryCategory?.CategoryName || "").split(":").filter(Boolean).pop() || "",
+    categoryPath: String(it.PrimaryCategory?.CategoryName || ""),
     auction: !/FixedPrice/i.test(type || ""),
     url: it.ListingDetails?.ViewItemURL || `https://www.ebay.co.uk/itm/${it.ItemID}`,
     listed: it.ListingDetails?.StartTime || "",
@@ -124,7 +126,7 @@ export async function syncListings(env, fetchFn = fetch) {
       `<DetailLevel>ReturnAll</DetailLevel><Pagination><EntriesPerPage>200</EntriesPerPage><PageNumber>${page}</PageNumber></Pagination>` +
       ["ItemArray.Item.ItemID", "ItemArray.Item.Title", "ItemArray.Item.SellingStatus", "ItemArray.Item.Quantity",
         "ItemArray.Item.PictureDetails", "ItemArray.Item.ShippingDetails.ShippingServiceOptions", "ItemArray.Item.ListingType",
-        "ItemArray.Item.ConditionDisplayName", "ItemArray.Item.ListingDetails", "ItemArray.Item.Location",
+        "ItemArray.Item.ConditionDisplayName", "ItemArray.Item.ListingDetails", "ItemArray.Item.Location", "ItemArray.Item.PrimaryCategory",
         "HasMoreItems", "PaginationResult", "Ack", "Errors"].map((s) => `<OutputSelector>${s}</OutputSelector>`).join(""),
       fetchFn);
     for (const it of arr(r.ItemArray?.Item)) {
