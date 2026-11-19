@@ -61,6 +61,35 @@
     ".prc-form input{width:100%;padding:10px 12px;border:1px solid #cfd6de;border-radius:6px;font:inherit;font-size:15px}",
     ".prc-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}",
     ".prc-desc{margin-top:22px;border-top:1px solid #e3e8ee;padding-top:16px}",
+    "#prc-listings .prc-filters{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px;align-items:center}",
+    "#prc-listings .prc-filters select,#prc-listings .prc-filters input{padding:8px 10px;border:1px solid #cfd6de;border-radius:6px;font:inherit;font-size:14px;background:#fff}",
+    "#prc-listings .prc-filters input[type=number]{width:92px}",
+    "#prc-listings .prc-count{font-size:13px;color:#5f6b7a;margin:0 0 14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}",
+    "#prc-listings .prc-clear{border:0;background:none;color:" + BLUE + ";font:inherit;font-size:13px;cursor:pointer;padding:0}",
+    ".prc-feat{max-width:1100px;margin:36px auto;padding:0 20px;font-family:inherit;color:#1f2933}",
+    ".prc-feat-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}",
+    ".prc-feat-head h2{margin:0;font-size:28px}",
+    ".prc-feat-head a{color:" + BLUE + ";font-weight:600;text-decoration:none;white-space:nowrap}",
+    ".prc-feat-wrap{position:relative}",
+    ".prc-feat-track{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;transition:opacity .45s ease}",
+    "@media(max-width:900px){.prc-feat-track{grid-template-columns:repeat(2,1fr)}}",
+    "@media(max-width:520px){.prc-feat-track{grid-template-columns:1fr}}",
+    ".prc-feat-card{border:1px solid #e3e8ee;border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;display:flex;flex-direction:column;transition:box-shadow .15s}",
+    ".prc-feat-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.1)}",
+    ".prc-feat-img{aspect-ratio:1/1;background:#f5f7f9;display:flex;align-items:center;justify-content:center}",
+    ".prc-feat-img img{max-width:100%;max-height:100%;object-fit:contain}",
+    ".prc-feat-body{padding:12px 14px;display:flex;flex-direction:column;gap:6px;flex:1}",
+    ".prc-feat-t{font-size:15px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
+    ".prc-feat-p{font-size:19px;font-weight:700;margin-top:auto}",
+    ".prc-arrow{position:absolute;top:38%;width:40px;height:40px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.2);font-size:22px;cursor:pointer;z-index:2;color:#1f2933}",
+    ".prc-arrow.l{left:-14px}.prc-arrow.r{right:-14px}",
+    ".prc-dots{display:flex;justify-content:center;gap:6px;margin-top:14px}",
+    ".prc-dots span{width:8px;height:8px;border-radius:50%;background:#cfd6de}.prc-dots span.on{background:" + BLUE + "}",
+    ".widget:has(.ecomproductslist){display:none!important}",
+    ".prc-wa{position:fixed;left:18px;bottom:18px;z-index:99998;display:flex;align-items:center;gap:8px;background:#25d366;color:#fff!important;text-decoration:none;border-radius:30px;padding:12px 18px 12px 14px;font:inherit;font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25)}",
+    ".prc-wa svg{width:24px;height:24px;flex:none}",
+    "@media(max-width:520px){.prc-wa span{display:none}.prc-wa{padding:13px}}",
+    ".prc-wa-item{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#128c4b!important;border:1px solid #25d366;border-radius:6px;padding:10px;text-decoration:none;font-weight:600;font-size:14px}",
     ".prc-desc h3{font-size:17px;margin:0 0 10px}",
     ".prc-desc iframe{width:100%;border:0;min-height:60px;display:block}",
   ].join("");
@@ -93,6 +122,17 @@
     else basket.push({ id: i.id, qty: Math.min(i.quantity, qty), delivery: delivery });
     save();
   }
+
+  // ---------- WhatsApp chat (messages go straight to the shop's phone) ----------
+  var WA_NUMBER = "447448472097";
+  var WA_ICON = '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.2.6 4.4 1.7 6.3L3 29l7.3-1.9c1.8 1 3.8 1.5 5.8 1.5 7 0 12.7-5.7 12.7-12.7S23 3 16 3zm0 23.3c-1.9 0-3.7-.5-5.3-1.4l-.4-.2-4.3 1.1 1.2-4.2-.3-.4c-1-1.7-1.6-3.6-1.6-5.6C5.3 9.8 10.1 5.3 16 5.3s10.6 4.7 10.6 10.4S21.9 26.3 16 26.3zm5.8-7.8c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.6-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.9-.8 2.1-1.5.3-.7.3-1.4.2-1.5-.1-.1-.3-.2-.6-.3z"/></svg>';
+  function waLink(text) { return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text); }
+  var wa = document.createElement("a");
+  wa.className = "prc-wa"; wa.target = "_blank"; wa.rel = "noopener";
+  wa.href = waLink("Hi PRC Distribution, I have a question:");
+  wa.setAttribute("aria-label", "Chat with us on WhatsApp");
+  wa.innerHTML = WA_ICON + "<span>Chat with us</span>";
+  document.body.appendChild(wa);
 
   var fab = document.createElement("button");
   fab.className = "prc-fab"; fab.type = "button";
@@ -140,7 +180,8 @@
       '<div class="prc-big">' + money(i.price) + "</div>" +
       '<div class="prc-meta" style="font-weight:600">Choose delivery</div>' + opts +
       (i.quantity > 1 ? '<div class="prc-meta" style="font-weight:600;margin-top:10px">Quantity</div><div class="prc-qty" data-q><button type="button" data-d="-1">−</button><span>1</span><button type="button" data-d="1">+</button></div>' : "") +
-      '<div style="margin-top:16px;display:grid;gap:8px"><button class="prc-btn" data-add type="button">Add to basket</button></div><div data-msg></div>' +
+      '<div style="margin-top:16px;display:grid;gap:8px"><button class="prc-btn" data-add type="button">Add to basket</button>' +
+      '<a class="prc-wa-item" target="_blank" rel="noopener" href="' + esc(waLink("Hi PRC Distribution, I have a question about: " + i.title + " (" + money(i.price) + ")")) + '">' + WA_ICON.replace("<svg ", '<svg style="width:20px;height:20px" ') + " Ask about this item</a></div><div data-msg></div>" +
       '</div></div><div class="prc-desc"><h3>Description</h3><div data-desc><p class="prc-meta">Loading description…</p></div></div>');
     loadDescription(i.id, bg.querySelector("[data-desc]"));
     var main = bg.querySelector(".prc-main img");
@@ -224,7 +265,7 @@
     ppReady = fetch(API + "/api/config").then(function (r) { return r.json(); }).then(function (cfg) {
       return new Promise(function (res, rej) {
         var s = document.createElement("script");
-        s.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(cfg.paypalClientId) + "&currency=GBP&intent=capture&locale=en_GB";
+        s.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(cfg.paypalClientId) + "&currency=GBP&intent=capture&locale=en_GB&disable-funding=card,credit,paylater,venmo";
         s.onload = function () { res(window.paypal); }; s.onerror = function () { ppReady = null; rej(); };
         document.head.appendChild(s);
       });
@@ -276,11 +317,12 @@
       form.querySelector("button").style.display = "none";
       ppEl.innerHTML = '<p class="prc-meta">Loading secure payment…</p>';
       loadPayPal().then(function (paypal) {
-        ppEl.innerHTML = '<p class="prc-meta" style="margin-bottom:8px">Pay securely with PayPal or card:</p><div data-btns></div><button type="button" class="prc-link" data-edit style="color:' + BLUE + ';margin:8px 0 0">Edit my details</button>';
+        ppEl.innerHTML = '<p class="prc-meta" style="margin-bottom:8px">Pay securely with PayPal:</p><div data-btns></div><button type="button" class="prc-link" data-edit style="color:' + BLUE + ';margin:8px 0 0">Edit my details</button>';
         ppEl.querySelector("[data-edit]").onclick = function () {
           [].forEach.call(form.elements, function (el) { el.disabled = false; }); form.querySelector("button").style.display = ""; ppEl.innerHTML = "";
         };
         paypal.Buttons({
+          fundingSource: paypal.FUNDING.PAYPAL,
           style: { layout: "vertical", shape: "rect", label: "pay" },
           createOrder: function () {
             msg.innerHTML = "";
@@ -310,6 +352,56 @@
     };
   }
 
+  // ---------- Home page: rotating random items ----------
+  function featured() {
+    var home = location.pathname === "/" || location.pathname === "" || /^\/home/i.test(location.pathname);
+    var box = document.getElementById("prc-featured");
+    if (!box && !home) return;
+    if (!items.length) return;
+    if (!box) {
+      box = document.createElement("div"); box.id = "prc-featured";
+      var old = document.querySelector(".ecomproductslist");
+      var anchor = old && old.closest(".widget--zone-widget, .widget");
+      if (!anchor) {
+        var h = [].find.call(document.querySelectorAll("h1,h2"), function (e) { return /top deals/i.test(e.textContent); });
+        anchor = h && h.closest(".widget--zone-widget");
+        if (anchor) { anchor.parentNode.insertBefore(box, anchor.nextSibling); }
+      } else anchor.parentNode.insertBefore(box, anchor);
+      if (!box.parentNode) return;
+    }
+    var pool = items.filter(function (i) { return i.image; }).slice();
+    for (var k = pool.length - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)); var t = pool[k]; pool[k] = pool[j]; pool[j] = t; }
+    pool = pool.slice(0, 24);
+    var per = function () { return window.innerWidth <= 520 ? 1 : window.innerWidth <= 900 ? 2 : 4; };
+    var page = 0, timer = null;
+    box.className = "prc-feat";
+    box.innerHTML = '<div class="prc-feat-head"><h2>Latest deals</h2><a href="/shop">View all ' + items.length + " items →</a></div>" +
+      '<div class="prc-feat-wrap"><button class="prc-arrow l" type="button" aria-label="Previous">‹</button><div class="prc-feat-track"></div><button class="prc-arrow r" type="button" aria-label="Next">›</button></div><div class="prc-dots"></div>';
+    var track = box.querySelector(".prc-feat-track"), dots = box.querySelector(".prc-dots");
+    function pages() { return Math.max(1, Math.ceil(pool.length / per())); }
+    function draw() {
+      var n = per(), set = pool.slice(page * n, page * n + n);
+      track.style.opacity = 0;
+      setTimeout(function () {
+        track.innerHTML = set.map(function (i) {
+          return '<div class="prc-feat-card" data-id="' + esc(i.id) + '"><div class="prc-feat-img"><img src="' + esc(i.image) + '" alt="' + esc(i.title) + '"></div>' +
+            '<div class="prc-feat-body"><div class="prc-feat-t">' + esc(i.title) + '</div><div class="prc-meta">' + esc(deliveryText(i)) + '</div><div class="prc-feat-p">' + money(i.price) + "</div></div></div>";
+        }).join("");
+        dots.innerHTML = Array.apply(null, Array(pages())).map(function (_, d) { return '<span class="' + (d === page ? "on" : "") + '"></span>'; }).join("");
+        track.style.opacity = 1;
+      }, 250);
+    }
+    function go(d) { page = (page + d + pages()) % pages(); draw(); }
+    function start() { stop(); timer = setInterval(function () { go(1); }, 5000); }
+    function stop() { if (timer) clearInterval(timer); timer = null; }
+    box.querySelector(".prc-arrow.l").onclick = function () { go(-1); start(); };
+    box.querySelector(".prc-arrow.r").onclick = function () { go(1); start(); };
+    box.addEventListener("mouseenter", stop); box.addEventListener("mouseleave", start);
+    track.addEventListener("click", function (e) { var c = e.target.closest(".prc-feat-card"); if (c && byId[c.getAttribute("data-id")]) openItem(byId[c.getAttribute("data-id")]); });
+    var lastPer = per(); window.addEventListener("resize", function () { if (per() !== lastPer) { lastPer = per(); page = 0; draw(); } });
+    draw(); start();
+  }
+
   // ---------- listing grid ----------
   var rerender = function () {};
   if (root) root.innerHTML = '<p class="prc-note">Loading our latest stock…</p>';
@@ -321,18 +413,47 @@
       items.forEach(function (i) { byId[i.id] = i; });
       basket = basket.filter(function (l) { var i = byId[l.id]; if (i) l.qty = Math.min(l.qty, i.quantity); return !!i; });
       save();
+      featured();
       if (!root) return; // basket-only page
+      function tally(key) { var m = {}; items.forEach(function (i) { if (i[key]) m[i[key]] = (m[i[key]] || 0) + 1; }); return Object.keys(m).sort().map(function (k) { return [k, m[k]]; }); }
+      var cats = tally("category"), conds = tally("condition");
       if (!items.length) { root.innerHTML = '<p class="prc-note">No items listed right now – check back soon.</p>'; return; }
       root.innerHTML =
-        '<div class="prc-bar"><input type="search" placeholder="Search ' + items.length + ' items…" aria-label="Search items">' +
-        '<select aria-label="Sort"><option value="new">Newest first</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></div>' +
-        '<div class="prc-grid"></div><p class="prc-note">Secure checkout with PayPal or card.</p>';
-      var grid = root.querySelector(".prc-grid"), search = root.querySelector("input"), sort = root.querySelector("select");
+        '<div class="prc-bar"><input type="search" data-f="q" placeholder="Search ' + items.length + ' items…" aria-label="Search items">' +
+        '<select data-f="sort" aria-label="Sort by"><option value="new">Sort: Newest first</option><option value="old">Sort: Oldest first</option><option value="low">Sort: Price low to high</option><option value="high">Sort: Price high to low</option><option value="az">Sort: Name A–Z</option><option value="za">Sort: Name Z–A</option></select></div>' +
+        '<div class="prc-filters">' +
+        (cats.length > 1 ? '<select data-f="cat" aria-label="Category"><option value="">All categories</option>' + cats.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[0]) + " (" + c[1] + ")</option>"; }).join("") + "</select>" : "") +
+        (conds.length > 1 ? '<select data-f="cond" aria-label="Condition"><option value="">Any condition</option>' + conds.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[0]) + " (" + c[1] + ")</option>"; }).join("") + "</select>" : "") +
+        '<select data-f="del" aria-label="Delivery"><option value="">Delivery or collection</option><option value="post">Delivery available</option><option value="free">Free delivery</option><option value="collect">Collection available</option></select>' +
+        '<input type="number" data-f="min" min="0" step="1" placeholder="Min £" aria-label="Minimum price"><input type="number" data-f="max" min="0" step="1" placeholder="Max £" aria-label="Maximum price">' +
+        "</div>" +
+        '<div class="prc-count"><span data-count></span><button type="button" class="prc-clear" data-clear>Clear filters</button></div>' +
+        '<div class="prc-grid"></div><p class="prc-note">Secure checkout with PayPal.</p>';
+      var grid = root.querySelector(".prc-grid");
+      var F = {}; [].forEach.call(root.querySelectorAll("[data-f]"), function (el) { F[el.getAttribute("data-f")] = el; });
+      var countEl = root.querySelector("[data-count]");
+      root.querySelector("[data-clear]").onclick = function () {
+        Object.keys(F).forEach(function (k) { if (k !== "sort") F[k].value = ""; }); rerender();
+      };
+      var cmp = { new: function (a, b) { return (b.listed || "").localeCompare(a.listed || ""); }, old: function (a, b) { return (a.listed || "").localeCompare(b.listed || ""); },
+        low: function (a, b) { return a.price - b.price; }, high: function (a, b) { return b.price - a.price; },
+        az: function (a, b) { return a.title.localeCompare(b.title); }, za: function (a, b) { return b.title.localeCompare(a.title); } };
       rerender = function () {
-        var q = search.value.toLowerCase().trim();
-        var list = items.filter(function (i) { return !q || i.title.toLowerCase().indexOf(q) > -1; });
-        if (sort.value === "low") list.sort(function (a, b) { return a.price - b.price; });
-        if (sort.value === "high") list.sort(function (a, b) { return b.price - a.price; });
+        var q = F.q.value.toLowerCase().trim(), cat = F.cat ? F.cat.value : "", cond = F.cond ? F.cond.value : "", del = F.del.value;
+        var mn = parseFloat(F.min.value), mx = parseFloat(F.max.value);
+        var list = items.filter(function (i) {
+          if (q && i.title.toLowerCase().indexOf(q) < 0) return false;
+          if (cat && i.category !== cat) return false;
+          if (cond && i.condition !== cond) return false;
+          if (del === "post" && i.postage === null) return false;
+          if (del === "free" && i.postage !== 0) return false;
+          if (del === "collect" && !i.collection) return false;
+          if (!isNaN(mn) && i.price < mn) return false;
+          if (!isNaN(mx) && i.price > mx) return false;
+          return true;
+        });
+        list.sort(cmp[F.sort.value] || cmp.new);
+        countEl.textContent = "Showing " + list.length + " of " + items.length + " items";
         grid.innerHTML = list.map(function (i) {
           return '<div class="prc-card" data-id="' + esc(i.id) + '"><div class="prc-img" data-open>' +
             (i.image ? '<img loading="lazy" src="' + esc(i.image) + '" alt="' + esc(i.title) + '">' : "") +
@@ -348,8 +469,7 @@
         var card = e.target.closest(".prc-card"); var it = card && byId[card.getAttribute("data-id")];
         if (it) openItem(it);
       });
-      search.addEventListener("input", rerender);
-      sort.addEventListener("change", rerender);
+      Object.keys(F).forEach(function (k) { F[k].addEventListener(k === "q" || k === "min" || k === "max" ? "input" : "change", rerender); });
       rerender();
     })
     .catch(function () { if (root) root.innerHTML = '<p class="prc-note">Couldn\'t load our stock right now – please try again shortly.</p>'; });
