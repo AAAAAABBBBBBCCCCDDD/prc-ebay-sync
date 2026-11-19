@@ -14,7 +14,11 @@ crons = ["*/15 * * * *"]
 EBAY_APP_ID = "PeterRai-MyWebsit-PRD-4d0996529-980867aa"
 PAYPAL_ENV = "live"
 EBAY_RUNAME = "Peter_Raivid-PeterRai-MyWebs-lqgdy"
+WA_PHONE = "+447448472097"
+ORDER_EMAILS = "sales@prcdisti.com,simon@raivid.com"
+CHAT_EMAILS = "sales@prcdisti.com"
+MAIL_FROM = "PRC Distribution <shop@prcdisti.com>"
 PAYPAL_CLIENT_ID = "BAAqxb41grDy5-DPj0UbJ-4tz7Z5CU5zOrREwxbJGq5hJzKYCiZIECtDe_O22l76snVCB-3Oy_3Cfk0TxI"
 
 # Set as secrets in Cloudflare (Settings > Variables and Secrets):
-#   EBAY_CERT_ID, PAYPAL_SECRET, ADMIN_KEY
+#   EBAY_CERT_ID, PAYPAL_SECRET, ADMIN_KEY, RESEND_API_KEY, CALLMEBOT_KEY
