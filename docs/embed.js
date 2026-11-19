@@ -2,11 +2,14 @@
    Embed:  <div id="prc-listings"></div><script src="https://aaaaaabbbbbbccccddd.github.io/prc-ebay-sync/embed.js"></script>
 */
 (function () {
+  if (window.__prcShopLoaded) return;
+  window.__prcShopLoaded = true;
   var API = "https://prc-shop.simonraivid907.workers.dev";
   var script = document.currentScript;
   if (script && script.getAttribute("data-api")) API = script.getAttribute("data-api");
-  var root = document.getElementById("prc-listings");
-  if (!root) { root = document.createElement("div"); script.parentNode.insertBefore(root, script); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+  function start() {
+  var root = document.getElementById("prc-listings"); // only on the Shop page; other pages get the basket only
 
   var BLUE = "#0b5cad";
   var css = [
@@ -57,6 +60,9 @@
     ".prc-form label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}",
     ".prc-form input{width:100%;padding:10px 12px;border:1px solid #cfd6de;border-radius:6px;font:inherit;font-size:15px}",
     ".prc-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}",
+    ".prc-desc{margin-top:22px;border-top:1px solid #e3e8ee;padding-top:16px}",
+    ".prc-desc h3{font-size:17px;margin:0 0 10px}",
+    ".prc-desc iframe{width:100%;border:0;min-height:60px;display:block}",
   ].join("");
   var style = document.createElement("style"); style.textContent = css; document.head.appendChild(style);
 
@@ -92,9 +98,21 @@
   fab.className = "prc-fab"; fab.type = "button";
   fab.onclick = function () { openBasket(); };
   document.body.appendChild(fab);
+  // The site's own basket icon in the top bar opens this basket instead of the old store basket
+  var HEADER_SEL = ".js-navigation-basket, .navigation-basket-toggle, .ecombasket, a[href*='/store/cart']";
+  document.addEventListener("click", function (e) {
+    var hit = e.target.closest && e.target.closest(HEADER_SEL);
+    if (!hit || hit.closest(".prc-bg")) return;
+    e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    openBasket();
+  }, true);
+  function headerBasket() { return document.querySelector(".js-navigation-basket, .ecombasket"); }
   function updateFab() {
     var n = lineCount();
-    fab.style.display = n ? "block" : "none";
+    [].forEach.call(document.querySelectorAll(".ecombasket__item-count"), function (c) { c.textContent = n; });
+    [].forEach.call(document.querySelectorAll(".ecombasket__basket-body"), function (b) { b.style.display = "none"; });
+    // floating button only where there's no basket icon in the top bar
+    fab.style.display = n && !headerBasket() ? "block" : "none";
     fab.textContent = "🛒 Basket (" + n + ") · " + money(totals().total);
   }
 
@@ -123,7 +141,8 @@
       '<div class="prc-meta" style="font-weight:600">Choose delivery</div>' + opts +
       (i.quantity > 1 ? '<div class="prc-meta" style="font-weight:600;margin-top:10px">Quantity</div><div class="prc-qty" data-q><button type="button" data-d="-1">−</button><span>1</span><button type="button" data-d="1">+</button></div>' : "") +
       '<div style="margin-top:16px;display:grid;gap:8px"><button class="prc-btn" data-add type="button">Add to basket</button></div><div data-msg></div>' +
-      "</div></div>");
+      '</div></div><div class="prc-desc"><h3>Description</h3><div data-desc><p class="prc-meta">Loading description…</p></div></div>');
+    loadDescription(i.id, bg.querySelector("[data-desc]"));
     var main = bg.querySelector(".prc-main img");
     [].forEach.call(bg.querySelectorAll(".prc-thumbs img"), function (t) {
       t.onclick = function () { main.src = t.src; [].forEach.call(bg.querySelectorAll(".prc-thumbs img"), function (x) { x.classList.toggle("on", x === t); }); };
@@ -144,6 +163,27 @@
       msg.querySelector("[data-cont]").onclick = bg.close;
       msg.querySelector("[data-go]").onclick = function () { bg.close(); openBasket(); };
     };
+  }
+
+  // eBay description shown in a locked-down frame (no scripts) so listing HTML can't affect this site
+  var descCache = {};
+  function loadDescription(id, box) {
+    var got = descCache[id] ? Promise.resolve(descCache[id]) :
+      fetch(API + "/api/description/" + encodeURIComponent(id)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) { descCache[id] = j.html || ""; return descCache[id]; });
+    got.then(function (html) {
+      if (!html || !html.replace(/<[^>]*>/g, "").trim()) { box.innerHTML = '<p class="prc-meta">No description provided.</p>'; return; }
+      var f = document.createElement("iframe");
+      f.setAttribute("sandbox", "allow-same-origin allow-popups allow-popups-to-escape-sandbox");
+      f.setAttribute("title", "Item description");
+      f.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>' +
+        'body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2933;overflow-wrap:anywhere}' +
+        'img,video{max-width:100%!important;height:auto!important}table{max-width:100%!important}*{max-width:100%;box-sizing:border-box}' +
+        '.prc-specs{border-collapse:collapse;margin:0 0 14px;width:100%}.prc-specs th,.prc-specs td{text-align:left;padding:6px 8px;border-bottom:1px solid #e3e8ee;font-size:14px;vertical-align:top}.prc-specs th{color:#5f6b7a;font-weight:600;width:40%}' +
+        '</style></head><body>' + html + "</body></html>";
+      box.innerHTML = ""; box.appendChild(f);
+      function fit() { try { f.style.height = (f.contentDocument.documentElement.scrollHeight + 4) + "px"; } catch (e) { f.style.height = "500px"; } }
+      f.onload = function () { fit(); [].forEach.call(f.contentDocument.images || [], function (im) { im.addEventListener("load", fit); }); setTimeout(fit, 800); setTimeout(fit, 2500); };
+    }).catch(function () { box.innerHTML = '<p class="prc-meta">Description unavailable right now.</p>'; });
   }
 
   // ---------- basket view ----------
@@ -272,7 +312,8 @@
 
   // ---------- listing grid ----------
   var rerender = function () {};
-  root.innerHTML = '<p class="prc-note">Loading our latest stock…</p>';
+  if (root) root.innerHTML = '<p class="prc-note">Loading our latest stock…</p>';
+  updateFab();
   fetch(API + "/api/listings")
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
@@ -280,6 +321,7 @@
       items.forEach(function (i) { byId[i.id] = i; });
       basket = basket.filter(function (l) { var i = byId[l.id]; if (i) l.qty = Math.min(l.qty, i.quantity); return !!i; });
       save();
+      if (!root) return; // basket-only page
       if (!items.length) { root.innerHTML = '<p class="prc-note">No items listed right now – check back soon.</p>'; return; }
       root.innerHTML =
         '<div class="prc-bar"><input type="search" placeholder="Search ' + items.length + ' items…" aria-label="Search items">' +
@@ -310,5 +352,6 @@
       sort.addEventListener("change", rerender);
       rerender();
     })
-    .catch(function () { root.innerHTML = '<p class="prc-note">Couldn\'t load our stock right now – please try again shortly.</p>'; });
+    .catch(function () { if (root) root.innerHTML = '<p class="prc-note">Couldn\'t load our stock right now – please try again shortly.</p>'; });
+  }
 })();
