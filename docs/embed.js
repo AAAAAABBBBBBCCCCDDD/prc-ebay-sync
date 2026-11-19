@@ -89,6 +89,14 @@
     ".social-link,li:has(> .social-link),.widget:has(.social-link):not(:has(p,h1,h2,h3,.prc-feat)){display:none!important}",
     ".prc-wa{position:fixed;left:18px;bottom:18px;z-index:99998;display:flex;align-items:center;gap:8px;background:#25d366;color:#fff!important;text-decoration:none;border-radius:30px;padding:12px 18px 12px 14px;font:inherit;font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25)}",
     ".prc-wa svg{width:24px;height:24px;flex:none}",
+    ".prc-chat{position:fixed;left:18px;bottom:78px;z-index:99999;width:330px;max-width:calc(100vw - 36px);background:#fff;color:#1f2933;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.28);font-family:inherit;overflow:hidden;display:none}",
+    ".prc-chat.open{display:block}",
+    ".prc-chat-h{background:#0b5cad;color:#fff;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}",
+    ".prc-chat-h button{background:none;border:0;color:#fff;font-size:24px;cursor:pointer;line-height:1}",
+    ".prc-chat-b{padding:14px 16px;display:grid;gap:8px}",
+    ".prc-chat-b input,.prc-chat-b textarea{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #cfd6de;border-radius:6px;font:inherit;font-size:14px}",
+    ".prc-chat-b textarea{min-height:90px;resize:vertical}",
+    ".prc-chat-or{text-align:center;font-size:12px;color:#5f6b7a}",
     "@media(max-width:520px){.prc-wa span{display:none}.prc-wa{padding:13px}}",
     ".prc-wa-item{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#128c4b!important;border:1px solid #25d366;border-radius:6px;padding:10px;text-decoration:none;font-weight:600;font-size:14px}",
     ".prc-desc h3{font-size:17px;margin:0 0 10px}",
@@ -128,12 +136,34 @@
   var WA_NUMBER = "447448472097";
   var WA_ICON = '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.2.6 4.4 1.7 6.3L3 29l7.3-1.9c1.8 1 3.8 1.5 5.8 1.5 7 0 12.7-5.7 12.7-12.7S23 3 16 3zm0 23.3c-1.9 0-3.7-.5-5.3-1.4l-.4-.2-4.3 1.1 1.2-4.2-.3-.4c-1-1.7-1.6-3.6-1.6-5.6C5.3 9.8 10.1 5.3 16 5.3s10.6 4.7 10.6 10.4S21.9 26.3 16 26.3zm5.8-7.8c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.6-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.9-.8 2.1-1.5.3-.7.3-1.4.2-1.5-.1-.1-.3-.2-.6-.3z"/></svg>';
   function waLink(text) { return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text); }
-  var wa = document.createElement("a");
-  wa.className = "prc-wa"; wa.target = "_blank"; wa.rel = "noopener";
-  wa.href = waLink("Hi PRC Distribution, I have a question:");
-  wa.setAttribute("aria-label", "Chat with us on WhatsApp");
-  wa.innerHTML = WA_ICON + "<span>Chat with us</span>";
+  var wa = document.createElement("button");
+  wa.className = "prc-wa"; wa.type = "button";
+  wa.setAttribute("aria-label", "Chat with us");
+  wa.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg><span>Chat with us</span>';
   document.body.appendChild(wa);
+  var chat = document.createElement("div");
+  chat.className = "prc-chat"; chat.setAttribute("role", "dialog"); chat.setAttribute("aria-label", "Message PRC Distribution");
+  chat.innerHTML = '<div class="prc-chat-h"><span>Message us</span><button type="button" aria-label="Close">×</button></div>' +
+    '<form class="prc-chat-b" novalidate><div class="prc-meta">Ask us anything – we\'ll reply by email.</div>' +
+    '<input name="name" placeholder="Your name" autocomplete="name"><input name="email" type="email" placeholder="Your email" autocomplete="email">' +
+    '<textarea name="message" placeholder="Your message"></textarea><button class="prc-btn" type="submit">Send message</button><div data-cmsg></div>' +
+    '<div class="prc-chat-or">or</div><a class="prc-wa-item" target="_blank" rel="noopener" href="' + waLink("Hi PRC Distribution, I have a question:") + '">' + WA_ICON.replace("<svg ", '<svg style="width:20px;height:20px" ') + " Chat on WhatsApp</a></form>";
+  document.body.appendChild(chat);
+  wa.onclick = function () { chat.classList.toggle("open"); if (chat.classList.contains("open")) { var n = chat.querySelector("[name=name]"); try { var c = JSON.parse(localStorage.getItem("prc_customer_v1") || "{}"); if (c.name && !n.value) n.value = c.name; if (c.email && !chat.querySelector("[name=email]").value) chat.querySelector("[name=email]").value = c.email; } catch (e) {} n.focus(); } };
+  chat.querySelector(".prc-chat-h button").onclick = function () { chat.classList.remove("open"); };
+  chat.querySelector("form").onsubmit = function (e) {
+    e.preventDefault();
+    var f = e.target, out = chat.querySelector("[data-cmsg]"), btn = f.querySelector("button[type=submit]");
+    var fv = function (n) { return f.querySelector("[name=" + n + "]").value.trim(); };
+    var body = { name: fv("name"), email: fv("email"), message: fv("message"), page: location.pathname };
+    if (body.name.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email) || body.message.length < 2) { out.innerHTML = '<div class="prc-msg prc-err">Please add your name, email and a message.</div>'; return; }
+    btn.disabled = true; btn.textContent = "Sending…";
+    fetch(API + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; }); })
+      .then(function () { f.querySelector("[name=message]").value = ""; out.innerHTML = '<div class="prc-msg prc-ok">Thanks ' + esc(body.name) + "! We've got your message and will reply to " + esc(body.email) + " shortly.</div>"; })
+      .catch(function (er) { out.innerHTML = '<div class="prc-msg prc-err">' + esc(er.message || "Couldn't send – please try WhatsApp instead.") + "</div>"; })
+      .then(function () { btn.disabled = false; btn.textContent = "Send message"; });
+  };
 
   var fab = document.createElement("button");
   fab.className = "prc-fab"; fab.type = "button";
@@ -374,11 +404,11 @@
     }
     var pool = items.filter(function (i) { return i.image; }).slice();
     for (var k = pool.length - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)); var t = pool[k]; pool[k] = pool[j]; pool[j] = t; }
-    pool = pool.slice(0, 24);
+    pool = pool.slice(0, 8); // just a small random selection; the full range is on the Shop page
     var per = function () { return window.innerWidth <= 520 ? 1 : window.innerWidth <= 900 ? 2 : 4; };
     var page = 0, timer = null;
     box.className = "prc-feat";
-    box.innerHTML = '<div class="prc-feat-head"><h2>Our products</h2><a href="/shop">View all ' + items.length + " items →</a></div>" +
+    box.innerHTML = '<div class="prc-feat-head"><h2>Our products</h2><a href="/shop">Shop all items →</a></div>' +
       '<div class="prc-feat-wrap"><button class="prc-arrow l" type="button" aria-label="Previous">‹</button><div class="prc-feat-track"></div><button class="prc-arrow r" type="button" aria-label="Next">›</button></div><div class="prc-dots"></div>';
     var track = box.querySelector(".prc-feat-track"), dots = box.querySelector(".prc-dots");
     function pages() { return Math.max(1, Math.ceil(pool.length / per())); }
