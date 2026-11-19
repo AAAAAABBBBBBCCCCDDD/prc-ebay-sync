@@ -416,13 +416,15 @@
       featured();
       if (!root) return; // basket-only page
       function tally(key) { var m = {}; items.forEach(function (i) { if (i[key]) m[i[key]] = (m[i[key]] || 0) + 1; }); return Object.keys(m).sort().map(function (k) { return [k, m[k]]; }); }
-      var cats = tally("category"), conds = tally("condition");
+      items.forEach(function (i) { var p = String(i.categoryPath || "").split(":"); i.dept = p[0] || ""; i.sub = p[1] || ""; });
+      var cats = tally("dept"), conds = tally("condition");
       if (!items.length) { root.innerHTML = '<p class="prc-note">No items listed right now – check back soon.</p>'; return; }
       root.innerHTML =
         '<div class="prc-bar"><input type="search" data-f="q" placeholder="Search ' + items.length + ' items…" aria-label="Search items">' +
         '<select data-f="sort" aria-label="Sort by"><option value="new">Sort: Newest first</option><option value="old">Sort: Oldest first</option><option value="low">Sort: Price low to high</option><option value="high">Sort: Price high to low</option><option value="az">Sort: Name A–Z</option><option value="za">Sort: Name Z–A</option></select></div>' +
         '<div class="prc-filters">' +
-        (cats.length > 1 ? '<select data-f="cat" aria-label="Category"><option value="">All categories</option>' + cats.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[0]) + " (" + c[1] + ")</option>"; }).join("") + "</select>" : "") +
+        (cats.length > 1 ? '<select data-f="cat" aria-label="Department"><option value="">All departments</option>' + cats.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[0]) + " (" + c[1] + ")</option>"; }).join("") + "</select>" : "") +
+        '<select data-f="sub" aria-label="Category" style="display:none"><option value="">All categories</option></select>' +
         (conds.length > 1 ? '<select data-f="cond" aria-label="Condition"><option value="">Any condition</option>' + conds.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[0]) + " (" + c[1] + ")</option>"; }).join("") + "</select>" : "") +
         '<select data-f="del" aria-label="Delivery"><option value="">Delivery or collection</option><option value="post">Delivery available</option><option value="free">Free delivery</option><option value="collect">Collection available</option></select>' +
         '<input type="number" data-f="min" min="0" step="1" placeholder="Min £" aria-label="Minimum price"><input type="number" data-f="max" min="0" step="1" placeholder="Max £" aria-label="Maximum price">' +
@@ -432,18 +434,28 @@
       var grid = root.querySelector(".prc-grid");
       var F = {}; [].forEach.call(root.querySelectorAll("[data-f]"), function (el) { F[el.getAttribute("data-f")] = el; });
       var countEl = root.querySelector("[data-count]");
+      // second dropdown lists the categories inside the chosen department
+      function fillSubs() {
+        var dept = F.cat ? F.cat.value : "", m = {};
+        items.forEach(function (i) { if (dept && i.dept === dept && i.sub) m[i.sub] = (m[i.sub] || 0) + 1; });
+        var keys = Object.keys(m).sort();
+        F.sub.innerHTML = '<option value="">All ' + esc(dept || "categories") + "</option>" + keys.map(function (k) { return '<option value="' + esc(k) + '">' + esc(k) + " (" + m[k] + ")</option>"; }).join("");
+        F.sub.style.display = keys.length > 1 ? "" : "none";
+      }
+      if (F.cat) F.cat.addEventListener("change", fillSubs);
       root.querySelector("[data-clear]").onclick = function () {
-        Object.keys(F).forEach(function (k) { if (k !== "sort") F[k].value = ""; }); rerender();
+        Object.keys(F).forEach(function (k) { if (k !== "sort") F[k].value = ""; }); fillSubs(); rerender();
       };
       var cmp = { new: function (a, b) { return (b.listed || "").localeCompare(a.listed || ""); }, old: function (a, b) { return (a.listed || "").localeCompare(b.listed || ""); },
         low: function (a, b) { return a.price - b.price; }, high: function (a, b) { return b.price - a.price; },
         az: function (a, b) { return a.title.localeCompare(b.title); }, za: function (a, b) { return b.title.localeCompare(a.title); } };
       rerender = function () {
-        var q = F.q.value.toLowerCase().trim(), cat = F.cat ? F.cat.value : "", cond = F.cond ? F.cond.value : "", del = F.del.value;
+        var q = F.q.value.toLowerCase().trim(), cat = F.cat ? F.cat.value : "", sub = F.sub.value, cond = F.cond ? F.cond.value : "", del = F.del.value;
         var mn = parseFloat(F.min.value), mx = parseFloat(F.max.value);
         var list = items.filter(function (i) {
           if (q && i.title.toLowerCase().indexOf(q) < 0) return false;
-          if (cat && i.category !== cat) return false;
+          if (cat && i.dept !== cat) return false;
+          if (sub && i.sub !== sub) return false;
           if (cond && i.condition !== cond) return false;
           if (del === "post" && i.postage === null) return false;
           if (del === "free" && i.postage !== 0) return false;
