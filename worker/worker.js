@@ -162,6 +162,46 @@ async function deductListings(env, lines) {
   await env.STORE.put("listings", JSON.stringify(data));
 }
 
+// ---------- item descriptions (fetched from eBay on demand, cached) ----------
+export function cleanDescription(h) {
+  return String(h || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<(iframe|object|embed|form|meta|link|base)[\s\S]*?>/gi, "")
+    .replace(/<\/(iframe|object|embed|form)>/gi, "")
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/(href|src)\s*=\s*(["']?)\s*javascript:[^"'\s>]*\2/gi, "")
+    .slice(0, 200000);
+}
+
+export async function getDescription(env, id, fetchFn = fetch, force = false) {
+  if (!/^\d{6,20}$/.test(String(id))) throw httpError(400, "Bad item id");
+  if (!force) { const c = await env.STORE.get(`desc:${id}`); if (c !== null) return c; }
+  const r = await trading(env, "GetItem",
+    `<ItemID>${id}</ItemID><DetailLevel>ReturnAll</DetailLevel><IncludeItemSpecifics>true</IncludeItemSpecifics>` +
+    `<OutputSelector>Item.Description</OutputSelector><OutputSelector>Item.ItemSpecifics</OutputSelector>`, fetchFn);
+  let html = cleanDescription(r.Item?.Description);
+  const specs = arr(r.Item?.ItemSpecifics?.NameValueList).map((n) => [n.Name, arr(n.Value).join(", ")]).filter((x) => x[0] && x[1]);
+  if (specs.length) {
+    const e = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    html = `<table class="prc-specs">${specs.map(([k, v]) => `<tr><th>${e(k)}</th><td>${e(v)}</td></tr>`).join("")}</table>` + html;
+  }
+  await env.STORE.put(`desc:${id}`, html, { expirationTtl: 3 * 86400 });
+  return html;
+}
+
+// fill in missing descriptions a few at a time (runs after each sync)
+export async function prefetchDescriptions(env, max = 25, fetchFn = fetch) {
+  const { listings } = await getListings(env);
+  let done = 0;
+  for (const l of listings) {
+    if (done >= max) break;
+    if ((await env.STORE.get(`desc:${l.id}`)) !== null) continue;
+    try { await getDescription(env, l.id, fetchFn, true); } catch (e) { console.error("desc", l.id, e.message); }
+    done++;
+  }
+  return done;
+}
+
 // ---------- PayPal ----------
 const ppBase = (env) => (env.PAYPAL_ENV === "sandbox" ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com");
 async function paypal(env, path, body, fetchFn = fetch) {
@@ -302,6 +342,8 @@ export async function handle(request, env, fetchFn = fetch) {
   if (request.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
     if (p === "/api/listings") return json(await getListings(env), 200, { "Cache-Control": "public, max-age=60" });
+    const dm = p.match(/^\/api\/description\/(\d+)$/);
+    if (dm) return json({ html: await getDescription(env, dm[1], fetchFn) }, 200, { "Cache-Control": "public, max-age=3600" });
     if (p === "/api/config") return json({ paypalClientId: env.PAYPAL_CLIENT_ID, currency: "GBP" });
     if (p === "/api/orders" && request.method === "POST") return json(await createOrder(env, await request.json(), fetchFn));
     const cm = p.match(/^\/api\/orders\/([\w-]+)\/capture$/);
@@ -349,5 +391,6 @@ export async function handle(request, env, fetchFn = fetch) {
 
 export default {
   fetch: (req, env) => handle(req, env),
-  scheduled: (_evt, env, ctx) => ctx.waitUntil(syncListings(env).catch((e) => console.error("sync failed", e.message))),
+  scheduled: (_evt, env, ctx) => ctx.waitUntil(
+    syncListings(env).then(() => prefetchDescriptions(env)).catch((e) => console.error("sync failed", e.message))),
 };
