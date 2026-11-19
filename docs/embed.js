@@ -361,7 +361,7 @@
     if (!box) {
       box = document.createElement("div"); box.id = "prc-featured";
       var old = document.querySelector(".ecomproductslist");
-      var anchor = old && old.closest(".widget--zone-widget, .widget");
+      var anchor = old && (old.closest(".widget--zone-widget") || old.closest(".widget"));
       if (!anchor) {
         var h = [].find.call(document.querySelectorAll("h1,h2"), function (e) { return /top deals/i.test(e.textContent); });
         anchor = h && h.closest(".widget--zone-widget");
