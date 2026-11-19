@@ -1,7 +1,7 @@
 {
   "seller": "prcdistribution",
-  "updated": "2026-11-19T10:22:24.132Z",
-  "count": 215,
+  "updated": "2026-11-19T20:39:14.871Z",
+  "count": 214,
   "listings": [
     {
       "id": "v1|206710307785|0",
@@ -179,21 +179,6 @@
         "BEST_OFFER"
       ],
       "listed": "2026-08-26T14:49:41.000Z"
-    },
-    {
-      "id": "v1|206500975364|0",
-      "title": "AEG IDK84451IB 83cm Induction Hob with Integrated vnt downward 942 150 636 01up",
-      "price": 899.95,
-      "currency": "GBP",
-      "wasPrice": null,
-      "condition": "New other (see details)",
-      "image": "https://i.ebayimg.com/images/g/-UoAAeSwicVqhJVN/s-l225.jpg",
-      "url": "https://www.ebay.co.uk/itm/206500975364?hash=item30146ad304:g:-UoAAeSwicVqhJVN",
-      "buyingOptions": [
-        "FIXED_PRICE",
-        "BEST_OFFER"
-      ],
-      "listed": "2026-08-18T17:29:52.000Z"
     },
     {
       "id": "v1|206500936211|0",
