@@ -1,7 +1,7 @@
 {
   "seller": "prcdistribution",
-  "updated": "2026-11-25T02:30:47.692Z",
-  "count": 214,
+  "updated": "2026-11-25T14:24:40.294Z",
+  "count": 213,
   "listings": [
     {
       "id": "v1|206724758911|0",
@@ -1758,21 +1758,6 @@
         "BEST_OFFER"
       ],
       "listed": "2023-03-03T15:16:05.000Z"
-    },
-    {
-      "id": "v1|204233872231|0",
-      "title": "Inverter Generator Petrol 2000W Watts RocwooD Portable Camping FREE Oil",
-      "price": 323.99,
-      "currency": "GBP",
-      "wasPrice": 359.99,
-      "condition": "New",
-      "image": "https://i.ebayimg.com/images/g/KAMAAOSwBh1j3sEu/s-l225.jpg",
-      "url": "https://www.ebay.co.uk/itm/204233872231?hash=item2f8d499367:g:KAMAAOSwBh1j3sEu",
-      "buyingOptions": [
-        "FIXED_PRICE",
-        "BEST_OFFER"
-      ],
-      "listed": "2023-02-04T20:38:06.000Z"
     },
     {
       "id": "v1|204231924839|0",
