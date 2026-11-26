@@ -1,7 +1,7 @@
 {
   "seller": "prcdistribution",
-  "updated": "2026-11-25T14:24:40.294Z",
-  "count": 213,
+  "updated": "2026-11-26T00:21:53.610Z",
+  "count": 212,
   "listings": [
     {
       "id": "v1|206724758911|0",
@@ -59,21 +59,6 @@
         "BEST_OFFER"
       ],
       "listed": "2026-10-19T10:04:14.000Z"
-    },
-    {
-      "id": "v1|206606593019|0",
-      "title": "Insinkerator food waste disposer model number 56 New boxed",
-      "price": 179.99,
-      "currency": "GBP",
-      "wasPrice": 199.99,
-      "condition": "New",
-      "image": "https://i.ebayimg.com/images/g/r1QAAeSw78VqxMTb/s-l225.jpg",
-      "url": "https://www.ebay.co.uk/itm/206606593019?hash=item301ab66bfb:g:r1QAAeSw78VqxMTb",
-      "buyingOptions": [
-        "FIXED_PRICE",
-        "BEST_OFFER"
-      ],
-      "listed": "2026-10-06T10:04:15.000Z"
     },
     {
       "id": "v1|206579498414|0",
