@@ -1,8 +1,22 @@
 {
   "seller": "prcdistribution",
-  "updated": "2026-11-26T10:55:40.880Z",
-  "count": 212,
+  "updated": "2026-11-26T21:33:59.100Z",
+  "count": 213,
   "listings": [
+    {
+      "id": "v1|206729059842|0",
+      "title": "Cookology 5 Burner Gas Hob 90cm with Wok Burner - Stainless Steel GH906SS",
+      "price": 99.99,
+      "currency": "GBP",
+      "wasPrice": null,
+      "condition": "New other (see details)",
+      "image": "https://i.ebayimg.com/images/g/KM0AAeSwrXprCH3C/s-l225.jpg",
+      "url": "https://www.ebay.co.uk/itm/206729059842?hash=item3022031e02:g:KM0AAeSwrXprCH3C",
+      "buyingOptions": [
+        "FIXED_PRICE"
+      ],
+      "listed": "2026-11-26T18:46:58.000Z"
+    },
     {
       "id": "v1|206724758911|0",
       "title": "Ariston Velis WI-FI 80 Unvented Electric Water Heater, Brushed Metal **BOXED**",
